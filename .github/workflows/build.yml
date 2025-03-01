@@ -1,0 +1,51 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install customtkinter
+        pip install pandas
+        pip install pillow
+        
+    - name: Create necessary files
+      run: |
+        echo "" > processed_files.txt
+        echo "" > processed_reports.txt
+        echo "" > sales_data.csv
+        mkdir archives
+        
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --name=SalesLeaderboard `
+                    --onefile `
+                    --windowed `
+                    --add-data="processed_files.txt;." `
+                    --add-data="processed_reports.txt;." `
+                    --add-data="sales_data.csv;." `
+                    --clean `
+                    invoice_tracker.py
+                    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: SalesLeaderboard
+        path: dist/SalesLeaderboard.exe
